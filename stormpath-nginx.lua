@@ -68,13 +68,15 @@ function M.oauthTokenEndpoint(applicationHref)
     }
   else
     response = {
-      status = json.status,
       error = json.error,
       message = json.message
     }
   end
 
   ngx.status = res.status
+  ngx.header.content_type = res.headers['Content-Type']
+  ngx.header.cache_control = 'no-store'
+  ngx.header.pragma = 'no-cache'
   ngx.say(cjson.encode(response))
   ngx.exit(ngx.HTTP_OK)
 end
@@ -123,25 +125,6 @@ function Helpers.copy(headers)
     result[k] = v
   end
   return result
-end
-
--- this is for debugging purposes only
-function tprint (tbl, indent)
-  local result = ''
-  if not indent then indent = 0 end
-  for k, v in pairs(tbl) do
-    formatting = string.rep("  ", indent) .. k .. ": "
-    if type(v) == "table" then
-      result = result .. formatting
-      tprint(v, indent+1)
-    elseif type(v) == 'boolean' then
-      result = result .. formatting .. tostring(v)      
-    else
-      result = result .. formatting .. v
-    end
-  end
-  ngx.say(result)
-  ngx.exit(ngx.OK)
 end
 
 return M
