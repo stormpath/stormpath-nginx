@@ -14,7 +14,7 @@ description = {
 dependencies = {
   'lua >= 5.1',
   'lua-resty-jwt = 0.1.5',
-  'lua-resty-http ~> 0.08'
+  'lua-resty-http = 0.08'
   }
 build = {
   type = 'builtin',
