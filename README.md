@@ -20,30 +20,25 @@ location /api/ {
 }
 ```
 
-Now, when a user makes a request to `/api/*`, Stormpath will look for and validate an access token for the request. If no access token is found, Stormpath will ask nginx to render a `401 Unauthorized` page. Otherwise, Stormpath will allow the request through and add the following headers:
+When a user makes a request to `/api/*`, Stormpath will look for and validate an access token for the request. If no access token is found, Stormpath will ask nginx to render a `401 Unauthorized` page. Otherwise, Stormpath will allow the request through and add the following headers:
 
-* `X-Stormpath-Account-Href` - a reference to the authenticated Stormpath account.
-* `X-Stormpath-Application-Href` - a reference to the Stormpath application that issued the access token.
+* `X-Stormpath-Account-Href` - a link to the authenticated Stormpath account.
+* `X-Stormpath-Application-Href` - a link to the Stormpath application that issued the access token.
 
-The Stormpath nginx integration also can handle requests for an OAuth 2.0 endpoint, and issue access and refresh tokens for users. Adding this endpoint is as easy as:
-
-```nginx
-location = /oauth/token {
-    content_by_lua_block {
-        local stormpath = require('stormpath-nginx')
-        stormpath.oauthTokenEndpoint()
-    }
-}
-```
+The Stormpath nginx integration also expose a OAuth 2.0 endpoint, and issue access and refresh tokens for users. 
 
 # Installation
 
 Stormpath's nginx integration requires the use of [OpenResty](https://openresty.org/). To use the nginx integration, make sure you have the following installed and configured: 
 
+* [OpenResty](https://openresty.org/) - a distribution of the nginx web server that includes the lua plugin
 * [Lua](https://www.lua.org/download.html) - the Lua programming language
- * When installing Lua, don't forget to `sudo make install` after building Lua with `make linux test`
 * [Luarocks](https://github.com/keplerproject/luarocks/wiki/Download) - a Lua package manager
- * You should add Luarocks modules to your lua path by running this command and adding it to your `.bash_profile` file: `eval $(luarocks path --bin)`. Otherwise, nginx will not detect your Luarocks modules. 
+
+If you're new to OpenResty, the following tips will help you make sure you configure Lua properly: 
+
+* When installing Lua, don't forget to `sudo make install` after building Lua with `make linux test`
+* You should add Luarocks modules to your lua path by running this command and adding it to your `.bash_profile` file: `eval $(luarocks path --bin)`. Otherwise, nginx will not detect your Luarocks modules. 
 
 With Luarocks, you can install the Stormpath nginx plugin with: 
 
@@ -65,27 +60,38 @@ The Stormpath plugin allows you to perform access control by adding code in the 
 
 ## Configuring the Stormpath API Key and Secret
 
-As with any other Stormpath integration, the Stormpath nginx plugin reads environment variables to find the API Key and Secret for Stormpath. With nginx, you need to explicitly expose environment variables to modules in the configuration, so you need to add into the top level configuration: 
+As with any other Stormpath integration, the Stormpath nginx plugin reads environment variables to find the API Key and Secret for Stormpath. Sign into the [Stormpath admin console](https://api.stormpath.com/login) to find your API Key and secret, and by running these and adding to your `.bash_profile`:
+
+```
+export STORMPATH_CLIENT_APIKEY_ID=
+export STORMPATH_CLIENT_APIKEY_SECRET=
+export STORMPATH_APPLICATION_HREF=
+```
+
+With nginx, you need to explicitly expose environment variables to modules in the configuration, so you need to add into the top level configuration: 
 
 ```
 env STORMPATH_CLIENT_APIKEY_ID;
 env STORMPATH_CLIENT_APIKEY_SECRET;
+env STORMPATH_APPLICATION_HREF;
 ```
+
+Note: `STORMPATH_APPLICATION_HREF` is optional for the Stormpath nginx plugin. 
 
 ## Authentication Scheme
 
-The Stormpath nginx plugin uses Stormpath access tokens presented as a Bearer token. This looks like the following:
+The Stormpath nginx plugin expects API clients to authenticate with Stormpath access tokens presented as a Bearer token. This looks like the following:
 
 ```http
 GET / HTTP/1.1
 Authorization: Bearer eyJra...
 ```
 
-These tokens are validated locally using the API Key and Secret pair. 
+These tokens are validated locally using the Stormpath API Key and Secret pair. 
 
 ## Getting the Authenticated Account
 
-You can use the Stormpath plugin to check for an access token, and forward on the account details to the end application. Here's what the configuration would look like. 
+You can use the Stormpath plugin to check for an access token, and forward the account details to the end application. Here's what the configuration would look like. 
 
 ```nginx
 location /api/ {
@@ -97,7 +103,7 @@ location /api/ {
 }
 ```
 
-For requests with a valid Stormpath access token, the plugin will additionally add the HTTP Headers to any forwarded request:
+In this example, nginx will proxy all requests to `http://localhost:3000/`, and additionally, for requests with a valid Stormpath access token, the plugin will add the following HTTP headers:
 
 * `X-Stormpath-Account-Href` - a URL referencing the authenticated account
 * `X-Stormpath-Application-Href` - a URL referencing the application that the account is bound to
@@ -128,9 +134,9 @@ Note: Since the default nginx `401 Unauthorized` page is a HTML page, this examp
 
 ## OAuth Token Endpoint
 
-Stormpath's nginx plugin can also act as an OAuth endpoint to issue Stormpath access and refresh tokens. The oauth handler currently supports: `password` and `refresh` grant types. 
+Stormpath's nginx plugin can also act as an OAuth endpoint, issue Stormpath access and refresh tokens. The oauth handler supports the `password` and `refresh` grant types. 
 
-Since this endpoint requires connectivity to Stormpath, you need to configure nginx to use a DNS resolver, as well as your root CA pem file. Add this into your http configuration block:
+Since this endpoint requires connectivity to Stormpath, you need to configure nginx to use a DNS resolver, as well as a pem file with your trusted SSL certificates. Add this into your http configuration block:
 
 ```nginx
 resolver 4.2.2.4;
@@ -138,7 +144,7 @@ lua_ssl_trusted_certificate /path/to/your/root/ca/pem/file;
 lua_ssl_verify_depth 2;
 ```
 
-Note: If you're unsure where your root certificate pem files are, check out Go's [root ca search paths](https://golang.org/src/crypto/x509/root_linux.go). If you're on mac, you'll need to open up Keychain Access, select all of your System Roots certificates, and then go to File > Export Items to export a .pem file. 
+Note: If you're unsure where your root certificate pem file is, check out Go's [root ca search paths](https://golang.org/src/crypto/x509/root_linux.go). Those locations should work for your linux distribution. If you're on macOS, you'll need to open up Keychain Access, select all of your System Roots certificates, and then go to File > Export Items to export a .pem file. 
 
 Once you have nginx configured, you can add an OAuth endpoint with the following configuration: 
 
@@ -189,7 +195,7 @@ HTTP/1.1 200 OK
 Or, deny the request:
 
 ```http
-HTTP/1.1 400 BAD REQUEST
+HTTP/1.1 400 Bad Request
 
 {
   "error": "invalid_grant",
@@ -197,7 +203,9 @@ HTTP/1.1 400 BAD REQUEST
 }
 ```
 
-You can now use it in authenticated requests. However, after the access token expires, you might want to get a new one. If your refresh token is still valid, you can refresh it, and expect the same response as above:
+### Refresh Grant Type
+
+After the access token expires, you might want to get a new one. If your refresh token is still valid, you can use the refresh grant to get a new access token, and expect the same response as above:
 
 ```http
 POST /oauth/token
@@ -221,3 +229,7 @@ $ prove t/*.t
 ```
 
 Integration tests are run via the OAuth subset of the [Stormpath Framework TCK](https://github.com/stormpath/stormpath-framework-tck). 
+
+# Questions?
+
+We're proud of the support we provide. Feel free to open up a GitHub issue, email us at support@stormpath.com, or [join our slack channel](https://talkstormpath.shipit.xyz) and chat with us! 
