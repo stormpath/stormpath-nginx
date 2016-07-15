@@ -1,8 +1,9 @@
 package = 'stormpath-nginx'
-version = '1.0-0'
+version = '1.0-1'
 source = {
-  url = 'https://github.com/stormpath/stormpath-nginx'
-  }
+  url = 'git://github.com/stormpath/stormpath-nginx',
+  tag = '1.0'
+}
 description = {
   summary = 'A Stormpath + nginx integration',
   detailed = [[
@@ -10,12 +11,12 @@ description = {
   ]],
   homepage = 'https://stormpath.com/',
   license = 'Apache2'
-  }
+}
 dependencies = {
   'lua >= 5.1',
   'lua-resty-jwt = 0.1.5',
   'lua-resty-http = 0.08'
-  }
+}
 build = {
   type = 'builtin',
   modules = {
