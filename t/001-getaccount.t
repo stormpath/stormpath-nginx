@@ -62,7 +62,8 @@ env STORMPATH_CLIENT_APIKEY_SECRET;
       
       local testJwtContents = {
         header = {
-          alg = 'HS256'
+          alg = 'HS256',
+          stt = 'access'
         },
         payload = {
           sub = 'https://api.stormpath.com/v1/accounts/7ZbV2MtrCH9Oh6QKKxoyZq',

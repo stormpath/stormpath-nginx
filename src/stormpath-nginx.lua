@@ -1,24 +1,34 @@
 local jwt = require('resty.jwt')
+local validators = require('resty.jwt-validators')
+local stormpathApplicationHref = os.getenv('STORMPATH_APPLICATION_HREF')
 local stormpathApiKeyId = os.getenv('STORMPATH_CLIENT_APIKEY_ID')
 local stormpathApiKeySecret = os.getenv('STORMPATH_CLIENT_APIKEY_SECRET')
 
 local M = {}
 local Helpers = {}
 
-function M.requireAccount()
-  M.getAccount(true)
+function M.getAccount()
+  getAccount(false)
 end
 
-function M.getAccount(required)
+function M.requireAccount()
+  getAccount(true)
+end
+
+function getAccount(required)
   local jwtString = Helpers.getBearerToken()
 
   if not jwtString then
     return Helpers.exit(required)
   end
 
-  local jwt = jwt:verify(stormpathApiKeySecret, jwtString)
+  local claimSpec = {
+    exp = validators.required(validators.opt_is_not_expired()),
+  }
 
-  if not jwt.verified then
+  local jwt = jwt:verify(stormpathApiKeySecret, jwtString, claimSpec)
+
+  if not (jwt.verified and jwt.header.stt == 'access') then
     return Helpers.exit(required)
   end
 
@@ -26,11 +36,17 @@ function M.getAccount(required)
   ngx.req.set_header('x-stormpath-account-href', jwt.payload.sub)
 end
 
+
 local http = require('resty.http')
 local cjson = require('cjson')
 local httpc = http.new()
 
 function M.oauthTokenEndpoint(applicationHref)
+  applicationHref = applicationHref or stormpathApplicationHref
+  oauthTokenEndpoint(applicationHref)
+end
+
+function oauthTokenEndpoint(applicationHref)
   ngx.req.read_body()
 
   local headers = ngx.req.get_headers()
