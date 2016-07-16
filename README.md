@@ -25,7 +25,7 @@ When a user makes a request to `/api/*`, Stormpath will look for and validate an
 * `X-Stormpath-Account-Href` - a link to the authenticated Stormpath account.
 * `X-Stormpath-Application-Href` - a link to the Stormpath application that issued the access token.
 
-The Stormpath nginx integration also expose a OAuth 2.0 endpoint, and issue access and refresh tokens for users. 
+The Stormpath nginx integration also exposes an OAuth 2.0 endpoint that can issue access and refresh tokens for authenticated users. 
 
 # Installation
 
@@ -134,7 +134,7 @@ Note: Since the default nginx `401 Unauthorized` page is a HTML page, this examp
 
 ## OAuth Token Endpoint
 
-Stormpath's nginx plugin can also act as an OAuth endpoint, issue Stormpath access and refresh tokens. The oauth handler supports the `password` and `refresh` grant types. 
+Stormpath's nginx plugin can also act as an OAuth 2.0 endpoint and issue Stormpath access and refresh tokens. The OAuth handler supports the `password` and `refresh` grant types. 
 
 Since this endpoint requires connectivity to Stormpath, you need to configure nginx to use a DNS resolver, as well as a pem file with your trusted SSL certificates. Add this into your http configuration block:
 
@@ -144,7 +144,7 @@ lua_ssl_trusted_certificate /path/to/your/root/ca/pem/file;
 lua_ssl_verify_depth 2;
 ```
 
-Note: If you're unsure where your root certificate pem file is, check out Go's [root ca search paths](https://golang.org/src/crypto/x509/root_linux.go). Those locations should work for your linux distribution. If you're on macOS, you'll need to open up Keychain Access, select all of your System Roots certificates, and then go to File > Export Items to export a .pem file. 
+Note: If you're unsure where your root certificate pem file is, check out Go's [root CA search paths](https://golang.org/src/crypto/x509/root_linux.go). The referenced root CA files should work for your linux distribution. If you're on macOS, you'll need to open up Keychain Access, select all of your System Roots certificates, and then go to File > Export Items to export a .pem file. 
 
 Once you have nginx configured, you can add an OAuth endpoint with the following configuration: 
 
@@ -165,7 +165,7 @@ stormpath.oauthTokenEndpoint('https://api.stormpath.com/v1/applications/APPID')
 
 ## Using the OAuth token endpoint
 
-The OAuth token endpoint supports the password and refresh grant types. More information can be found in the [OAuth spec](https://tools.ietf.org/html/rfc6749), but here's a general overview:
+The OAuth 2.0 token endpoint supports the password and refresh grant types. More information can be found in the [OAuth spec](https://tools.ietf.org/html/rfc6749), but here's a general overview:
 
 ### Password Grant Type
 
