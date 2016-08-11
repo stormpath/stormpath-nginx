@@ -28,7 +28,7 @@ function getAccount(required)
 
   local jwt = jwt:verify(stormpathApiKeySecret, jwtString, claimSpec)
 
-  if not (jwt.verified and jwt.header.stt == 'access') then
+  if not (jwt.verified and jwt.header.stt == 'access' and jwt.header.alg == 'HS256') then
     return Helpers.exit(required)
   end
 
@@ -51,20 +51,35 @@ function oauthTokenEndpoint(applicationHref)
 
   local headers = ngx.req.get_headers()
 
+  -- Proxy these certain parameters to the Stormpath API
+  
   local request = {
     method = ngx.var.request_method,
     body = ngx.req.get_body_data(),
     headers = {
       authorization = 'Basic ' .. ngx.encode_base64(stormpathApiKeyId .. ':' .. stormpathApiKeySecret),
-      ['content-type'] = headers['content-type']
+      ['content-type'] = headers['content-type'],
+      accept = 'application/json',
+      ['user-agent'] = 'stormpath-nginx/1.0.1 nginx/' .. ngx.var.nginx_version
     }
   }
+
+  -- For client credentials requests, we need to transform basic auth to post body parameters
 
   local apiKeyId, apiKeySecret = Helpers.getBasicAuthCredentials()
 
   if apiKeyId and apiKeySecret then
-    request.body = (request.body or '') .. '&apiKeyId=' .. apiKeyId .. '&apiKeySecret=' .. apiKeySecret
+    request.body = (request.body or '') .. '&apiKeyId=' .. ngx.escape_uri(apiKeyId) .. 
+    '&apiKeySecret=' .. ngx.escape_uri(apiKeySecret)
   end
+
+  -- We also need to pass the X-Stormpath-Agent if present
+
+  if headers['x-stormpath-agent'] then
+    request.headers['user-agent'] = headers['x-stormpath-agent'] .. ' ' .. request.headers['user-agent']
+  end
+
+  -- Make the request
 
   local res, err = httpc:request_uri(applicationHref .. '/oauth/token' , request)
 
@@ -74,6 +89,8 @@ function oauthTokenEndpoint(applicationHref)
 
   local json = cjson.decode(res.body)
   local response = {}
+
+  -- Respond with a stripped token response or error
 
   if res.status == 200 then
     response = {

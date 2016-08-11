@@ -1,8 +1,8 @@
 package = 'stormpath-nginx'
-version = '1.0-1'
+version = '1.0.1-0'
 source = {
   url = 'git://github.com/stormpath/stormpath-nginx',
-  tag = '1.0'
+  tag = '1.0.1'
 }
 description = {
   summary = 'A Stormpath + nginx integration',

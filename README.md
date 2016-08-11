@@ -165,7 +165,7 @@ stormpath.oauthTokenEndpoint('https://api.stormpath.com/v1/applications/APPID')
 
 ## Using the OAuth token endpoint
 
-The OAuth 2.0 token endpoint supports the password and refresh grant types. More information can be found in the [OAuth spec](https://tools.ietf.org/html/rfc6749), but here's a general overview:
+The OAuth token endpoint supports the password, refresh, and client credentials grant types. More information can be found in the [OAuth spec](https://tools.ietf.org/html/rfc6749), but here's a general overview:
 
 ### Password Grant Type
 
@@ -212,6 +212,27 @@ POST /oauth/token
 
 grant_type=refresh_token&
 refresh_token=<refresh token>
+```
+
+### Client Credentials
+
+The OAuth token endpoint also supports the client credentials grant type, which is used to exchange a set of API Keys for an access token. The following request is made, using Basic Authentication with the API Key ID as the username, and API Key Secret as the password:
+
+```http
+POST /oauth/token
+Authorization: Basic <Base64UrlEncoded(ApiKeyId:ApiKeySecret)>
+
+grant_type=client_credentials
+```
+
+This results in the following access token response (or above error response). Note that unlike the password grant type, no refresh token is issued. This is because the API Key / Secret are used to "refresh" the access token. 
+
+```http
+{
+  "access_token": "eyJra...",
+  "expires_in": 3600,
+  "token_type": "Bearer"
+}
 ```
 
 # Tests
