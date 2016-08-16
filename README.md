@@ -50,12 +50,6 @@ $ luarocks install stormpath-nginx --local
 
 If it's your first time using OpenResty, check out the [Getting Started with OpenResty](https://openresty.org/en/getting-started.html) guide on how to configure and run nginx. You should also take a look at the [example.nginx.conf](example.nginx.conf) file to see how an nginx.conf file is structured. 
 
-If you want to try out this plugin, try running nginx with the example.nginx.conf file in this Git repository: 
-
-```bash
-$ nginx -p `pwd` -c example.nginx.conf
-```
-
 The Stormpath plugin allows you to perform access control by adding code in the `access_by_lua_block` hooks exposed by OpenResty. Nginx will first run your code in the `access_by_lua_block`, and depending on the result, optionally pass the request onto your content handler. 
 
 ## Configuring the Stormpath API Key and Secret
