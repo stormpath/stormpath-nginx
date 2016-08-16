@@ -39,7 +39,6 @@ end
 
 local http = require('resty.http')
 local cjson = require('cjson')
-local httpc = http.new()
 
 function M.oauthTokenEndpoint(applicationHref)
   applicationHref = applicationHref or stormpathApplicationHref
@@ -47,6 +46,7 @@ function M.oauthTokenEndpoint(applicationHref)
 end
 
 function oauthTokenEndpoint(applicationHref)
+  local httpc = http.new()
   ngx.req.read_body()
 
   local headers = ngx.req.get_headers()
