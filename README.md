@@ -4,7 +4,7 @@
 
 This is a Stormpath integration written in Lua for the nginx web server.
 
-This integration allows you to use nginx as an API Gateway for your backend, without integration Stormpath into every service.
+This integration allows you to use nginx as an API Gateway for your backend, without integrating Stormpath into every service.
 
 # Why use an nginx plugin?
 
