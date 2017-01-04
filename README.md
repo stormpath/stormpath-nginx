@@ -159,7 +159,7 @@ stormpath.oauthTokenEndpoint('https://api.stormpath.com/v1/applications/APPID')
 
 ## Using the OAuth token endpoint
 
-The OAuth token endpoint supports the password, refresh, and client credentials grant types. More information can be found in the [OAuth spec](https://tools.ietf.org/html/rfc6749), but here's a general overview:
+The OAuth token endpoint supports the password, refresh, and client credentials grant types. More information can be found in the [OAuth spec](https://tools.ietf.org/html/rfc6749), and the [Stormpath OAuth Guide](https://docs.stormpath.com/rest/product-guide/latest/auth_n.html#generating-an-oauth-2-0-access-token) but here's a general overview:
 
 ### Password Grant Type
 
